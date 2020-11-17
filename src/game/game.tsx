@@ -13,35 +13,55 @@ const Game: React.FunctionComponent<any> = (props) => {
   const [history, setHistory] = useState(defaultHistory);
   const [stepNumber, setStepNumber] = useState(0);
   const [xIsNext, setXIsNext] = useState(true);
+  const [isWinner, setIsWinner] = useState(false);
 
   const handleClick = (
     index: number,
     position: { line: number; col: number }
   ) => {
     const newHistory = history.slice(0, stepNumber + 1);
-    const current = newHistory[newHistory.length - 1];
-    const squares = current.squares.slice();
-    if (calculateWinner(squares) || squares[index]) {
+    const lastHistory = newHistory[newHistory.length - 1];
+    const squares = lastHistory.squares.slice();
+    const mark = xIsNext ? "X" : "O";
+    if (isWinner || squares[index]) {
       return;
     }
-    const mark = xIsNext ? "X" : "O";
     squares[index] = mark;
-    setHistory(
-      newHistory.concat([
-        {
-          squares: squares,
-          position,
-          mark,
-        },
-      ])
-    );
+    const result = newHistory.concat([
+      {
+        squares: squares,
+        position,
+        mark,
+      },
+    ])
+    setHistory(result);
     setStepNumber(newHistory.length);
     setXIsNext(!xIsNext);
+    checkWinner(result);
   };
 
-  const jumpTo = (step: number) => {
-    setStepNumber(step);
-    setXIsNext(step % 2 === 0);
+  const checkWinner = (newHistory: any) => {
+    const currentHistory = newHistory[newHistory.length - 1];
+    const currentMark = currentHistory.mark;
+    const winner = calculateWinner(currentHistory.squares);
+    if (winner) {
+      (winner || []).forEach(
+        (idx: any) =>
+          (currentHistory.squares[idx] = {
+            value: currentMark,
+            winner: true,
+          })
+      );
+    }
+    setIsWinner(!!winner);
+  };
+
+  const jumpTo = (stepSelected: number) => {
+    if(stepNumber !== stepSelected) {
+      setStepNumber(stepSelected);
+      setXIsNext(stepSelected % 2 === 0);
+      setIsWinner(false);
+    }
   };
 
   const getMovesRender = () => {
@@ -67,17 +87,9 @@ const Game: React.FunctionComponent<any> = (props) => {
   const getStatusRender = () => {
     const currentHistory = history[stepNumber];
     const currentMark = currentHistory.mark;
-    const winner = calculateWinner(currentHistory.squares);
     let status;
-    if (winner) {
+    if (isWinner) {
       status = currentMark + " a gagné";
-      winner.forEach(
-        (idx) =>
-          (currentHistory.squares[idx] = {
-            value: currentMark,
-            winner: true,
-          })
-      );
     } else {
       status =
         stepNumber === 9

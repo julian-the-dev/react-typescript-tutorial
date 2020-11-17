@@ -25,10 +25,10 @@ const Board: React.FunctionComponent<any> = (props) => {
     return lines.map((line, indexLine) => {
       const colones = line.map((index, indexCol) => {
         return (
-          <span>{renderSquare(index, { line: indexLine, col: indexCol })}</span>
+          <span key={indexCol}>{renderSquare(index, { line: indexLine, col: indexCol })}</span>
         );
       });
-      return <div className="board-row">{colones}</div>;
+      return <div className="board-row" key={indexLine}>{colones}</div>;
     });
   };
 
